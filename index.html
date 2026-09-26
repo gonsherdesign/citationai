@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CitationAI — cite your AI conversations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    --bg: #EDEAE1;
+    --surface: #F7F5EF;
+    --surface-alt: #FFFFFF;
+    --ink: #212832;
+    --ink-soft: #4C5867;
+    --ink-faint: #7A8494;
+    --accent: #7A2E2E;
+    --accent-soft: #9A4A45;
+    --accent-tint: #F0E1DE;
+    --verified: #375C3B;
+    --verified-tint: #E3EAE0;
+    --border: #D9D3C3;
+    --mono-bg: #E6E1D2;
+    --focus: #375C3B;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14181D;
+      --surface: #1C2229;
+      --surface-alt: #232A33;
+      --ink: #E9E6DC;
+      --ink-soft: #B7BFC9;
+      --ink-faint: #7C8593;
+      --accent: #D08C82;
+      --accent-soft: #E0A69D;
+      --accent-tint: #34272A;
+      --verified: #8FB593;
+      --verified-tint: #212B23;
+      --border: #333C47;
+      --mono-bg: #232B34;
+      --focus: #8FB593;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14181D;
+    --surface: #1C2229;
+    --surface-alt: #232A33;
+    --ink: #E9E6DC;
+    --ink-soft: #B7BFC9;
+    --ink-faint: #7C8593;
+    --accent: #D08C82;
+    --accent-soft: #E0A69D;
+    --accent-tint: #34272A;
+    --verified: #8FB593;
+    --verified-tint: #212B23;
+    --border: #333C47;
+    --mono-bg: #232B34;
+    --focus: #8FB593;
+  }
+
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 6rem;
+  }
+
+  header.masthead {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2rem;
+    margin-bottom: 2.75rem;
+  }
+
+  .masthead .mark {
+    font-family: Calibri, Carlito, "Segoe UI", var(--sans);
+    font-weight: 700;
+    font-size: 1.7rem;
+    color: var(--accent);
+    letter-spacing: 0.01em;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 2.65rem);
+    line-height: 1.12;
+    margin: 0.5rem 0 0.9rem;
+    max-width: none;
+  }
+
+  .dek {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: none;
+    margin: 0;
+  }
+
+  section.step {
+    margin-bottom: 2.75rem;
+  }
+
+  .step-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .step-num {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    min-width: 1.6rem;
+  }
+
+  .step-head h2 {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .step-body {
+    padding-left: calc(1.6rem + 0.85rem);
+  }
+
+  .hint {
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+    margin: 0.4rem 0 0;
+  }
+
+  textarea, input[type="text"], input[type="date"], select {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 0.98rem;
+    color: var(--ink);
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.7rem 0.8rem;
+  }
+
+  textarea:focus, input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+
+  textarea {
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .filebtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin-top: 0.6rem;
+    cursor: pointer;
+  }
+  .filebtn input { display: none; }
+  .filebtn span.link {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 560px) {
+    .grid2 { grid-template-columns: 1fr; }
+  }
+
+  .field { margin-bottom: 1rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-bottom: 0.35rem;
+  }
+
+  .checkline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin-top: 1.1rem;
+  }
+  .checkline input { margin-top: 0.2rem; }
+
+  button.primary {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.98rem;
+    color: var(--surface-alt);
+    background: var(--accent);
+    border: none;
+    border-radius: 3px;
+    padding: 0.8rem 1.4rem;
+    cursor: pointer;
+  }
+  button.primary:hover { background: var(--accent-soft); }
+
+  button.ghost {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+  }
+  button.ghost:hover { border-color: var(--ink-faint); color: var(--ink); }
+
+  #output { display: none; }
+  #output.show { display: block; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .panel h3 {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.9rem;
+  }
+
+  .fingerprint {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+  }
+  .fingerprint code {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: var(--mono-bg);
+    padding: 0.4rem 0.6rem;
+    border-radius: 3px;
+    word-break: break-all;
+    flex: 1 1 auto;
+    min-width: 200px;
+  }
+
+  .row-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  ol.howto {
+    margin: 0 0 0;
+    padding-left: 1.2rem;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  ol.howto li { margin-bottom: 0.6rem; }
+  ol.howto li:last-child { margin-bottom: 0; }
+  ol.howto a { color: var(--accent); }
+
+  .linkfield {
+    margin-top: 1.1rem;
+  }
+
+  .citation-out {
+    font-family: var(--serif);
+    font-size: 1rem;
+    line-height: 1.65;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1.1rem 1.2rem;
+    text-indent: -1.5em;
+    margin-left: 1.5em;
+  }
+  .citation-out .pending {
+    color: var(--accent);
+    font-style: italic;
+    font-family: var(--sans);
+    font-size: 0.92em;
+  }
+
+  .verified-tag {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--verified);
+    background: var(--verified-tint);
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    margin-bottom: 0.7rem;
+  }
+
+  .demo-tag {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-tint);
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    margin-bottom: 0.7rem;
+    letter-spacing: 0.02em;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  footer a { color: var(--ink-soft); }
+
+  .copied-msg {
+    font-size: 0.82rem;
+    color: var(--verified);
+    margin-left: 0.4rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="mark">CitationAI</div>
+    <h1>Cite your AI conversations like any other source.</h1>
+    <p class="dek">CitationAI helps scholars build a transparent, permanent record of how they used AI in their research. Paste a conversation and get a ready-to-use citation, linked to a fingerprinted copy of the full exchange, so reviewers, students, and future readers can see exactly what was asked and what came back. It's free, open source, and built so anyone can inspect, self-host, or improve it.</p>
+  </header>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">1</span>
+      <h2>Paste chatbot text</h2>
+    </div>
+    <div class="step-body">
+      <textarea id="transcript" placeholder="Paste the full exchange here — your prompts and the AI's responses, in order."></textarea>
+      <label class="filebtn">
+        <input type="file" id="fileInput" accept=".txt,.md,.markdown,.json">
+        <span>or</span> <span class="link">upload a .txt, .md, or .json export</span>
+      </label>
+      <p class="hint">Most AI tools don't have a one-click "download transcript" button. Copy-paste from the chat window, or use the tool's export/share feature if it has one, then paste or upload that file here.</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">2</span>
+      <h2>Add the details</h2>
+    </div>
+    <div class="step-body">
+      <div class="grid2">
+        <div class="field">
+          <label for="tool">AI tool</label>
+          <select id="tool">
+            <option value="ChatGPT|OpenAI">ChatGPT</option>
+            <option value="Claude|Anthropic">Claude</option>
+            <option value="Gemini|Google">Gemini</option>
+            <option value="Grok|xAI">Grok</option>
+            <option value="Copilot|Microsoft">Copilot</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field" id="otherToolField" style="display:none;">
+          <label for="otherTool">Tool and maker</label>
+          <input type="text" id="otherTool" placeholder="e.g. Perplexity, Perplexity AI">
+        </div>
+        <div class="field">
+          <label for="version">Model / version <span style="color:var(--ink-faint)">(optional)</span></label>
+          <input type="text" id="version" placeholder="e.g. GPT-4o, Claude Sonnet 4.5">
+        </div>
+        <div class="field">
+          <label for="convDate">Date of conversation</label>
+          <input type="date" id="convDate">
+        </div>
+      </div>
+      <div class="field">
+        <label for="authorName">Name of author</label>
+        <input type="text" id="authorName" placeholder="e.g. Jane Smith">
+      </div>
+      <div class="field">
+        <label for="title">Name of paper</label>
+        <input type="text" id="title" placeholder="e.g. The Effect of Tariffs on Consumer Prices">
+      </div>
+      <label class="checkline">
+        <input type="checkbox" id="edited">
+        <span>I edited or revised the AI's output before using it</span>
+      </label>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">3</span>
+      <h2>Build the record</h2>
+    </div>
+    <div class="step-body">
+      <button class="primary" id="generateBtn">Build citation package</button>
+      <label class="checkline" style="margin-top:0.9rem;">
+        <input type="checkbox" id="demoMode">
+        <span>Try demo mode — simulates automatic storage so you can see how it behaves, without a real Worker deployed</span>
+      </label>
+      <p class="hint" id="generateError" style="display:none; color:var(--accent);"></p>
+    </div>
+  </section>
+
+  <div id="output">
+
+    <div class="panel">
+      <h3>Fingerprint</h3>
+      <p class="hint" style="margin-bottom:0.8rem;">This is a SHA-256 fingerprint of the exact file below. Anyone can recompute it later to confirm the transcript hasn't been altered.</p>
+      <div class="fingerprint">
+        <code id="hashOut">—</code>
+        <button class="ghost" id="copyHash">Copy</button>
+      </div>
+      <div class="row-actions">
+        <button class="ghost" id="downloadManifest">Download the transcript file</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Give it a permanent home</h3>
+
+      <div id="autoStorage" style="display:none;">
+        <p class="hint" id="autoStorageStatus" style="margin-bottom:0.9rem;"></p>
+        <div class="linkfield">
+          <label for="permLink">Permanent link</label>
+          <input type="text" id="permLink" placeholder="https://arweave.net/…">
+        </div>
+      </div>
+
+      <div id="manualStorage">
+        <p class="hint" style="margin-bottom:0.9rem;">A citation needs a link that will still work in ten years. This first option is free with no real ceiling for text this size — the others below have a genuine cost or cap once you scale up:</p>
+        <ol class="howto">
+          <li><strong>Recommended — GitHub + Software Heritage.</strong> GitHub doesn't charge for public repo storage and lets you create unlimited public repos, so committing transcripts (a few KB to a few hundred KB each) never really runs into a wall — a single 1&nbsp;GB repo alone holds thousands of them, and a new repo costs nothing. Commit the file to a public repo, then submit that repo's URL at <a href="https://archive.softwareheritage.org/save/" target="_blank" rel="noopener">archive.softwareheritage.org/save</a>. Software Heritage — a nonprofit archive backed by Inria and UNESCO with no user storage quota — mirrors it and issues a permanent, content-based identifier (a SWHID) that keeps resolving even if the repo is later deleted.</li>
+          <li><strong>Pay-once alternative:</strong> <a href="https://ardrive.io" target="_blank" rel="noopener">ArDrive</a> stores the file on Arweave for a small one-time fee per file — cheap, but it is a real, accumulating cost, not free.</li>
+          <li><strong>Free-tier alternative:</strong> IPFS pinning services like <a href="https://filebase.com" target="_blank" rel="noopener">Filebase</a> or <a href="https://4everland.org" target="_blank" rel="noopener">4EVERLAND</a> offer 5&nbsp;GB free — genuinely free, but genuinely capped.</li>
+          <li><strong>Optional, extra proof either way:</strong> drop the same file into <a href="https://opentimestamps.org" target="_blank" rel="noopener">OpenTimestamps</a> (free, no account) to anchor its fingerprint in the Bitcoin blockchain — independent proof it existed, unaltered, as of today.</li>
+        </ol>
+        <div class="linkfield">
+          <label for="permLinkManual">Paste your permanent link here</label>
+          <input type="text" id="permLinkManual" placeholder="https://arweave.net/…">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Your citation</h3>
+      <div id="citeVerifiedTag"></div>
+      <div class="citation-out" id="citationText">—</div>
+      <div class="row-actions">
+        <button class="ghost" id="copyCitation">Copy citation</button>
+        <span class="copied-msg" id="copiedMsg" style="display:none;">Copied</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    Nothing you paste here is sent anywhere except to the storage step you choose yourself; the fingerprint and file are generated in your browser. CitationAI is free and open source under the MIT license — read the code, self-host it, or send improvements on <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>.
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  // Set this to your deployed Cloudflare Worker URL to enable automatic
+  // storage (see /worker in the repo). Leave blank and the page falls
+  // back to the manual "paste your link" flow — it works fully either way.
+  const STORAGE_ENDPOINT = "";
+
+  const $ = (id) => document.getElementById(id);
+  const toolSelect = $('tool');
+  const otherToolField = $('otherToolField');
+  const otherToolInput = $('otherTool');
+  const fileInput = $('fileInput');
+  const transcriptEl = $('transcript');
+  const dateEl = $('convDate');
+  dateEl.value = new Date().toISOString().slice(0,10);
+
+  toolSelect.addEventListener('change', () => {
+    otherToolField.style.display = toolSelect.value === 'other' ? 'block' : 'none';
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => { transcriptEl.value = evt.target.result; };
+    reader.readAsText(f);
+  });
+
+  function getToolInfo() {
+    if (toolSelect.value === 'other') {
+      const raw = otherToolInput.value.trim();
+      const parts = raw.split(',');
+      return { tool: (parts[0] || 'the AI tool').trim(), company: (parts[1] || '').trim() || (parts[0]||'').trim() };
+    }
+    const [tool, company] = toolSelect.value.split('|');
+    return { tool, company };
+  }
+
+  function fmtDate(d) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function pendingSpan() {
+    return '<span class="pending">[permanent link pending — see step 3]</span>';
+  }
+
+  let currentHash = '';
+  let currentManifest = '';
+  let demoActive = false;
+
+  async function sha256Hex(text) {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function buildManifest({ tool, company, version, dateStr, author, title, hash }) {
+    return [
+      'CITATIONAI — CONVERSATION MANIFEST',
+      '===================================',
+      `AI tool: ${tool}${company ? ' (' + company + ')' : ''}`,
+      `Model / version: ${version || 'not specified'}`,
+      `Conversation date: ${dateStr}`,
+      `Author: ${author || 'not specified'}`,
+      `Paper title: ${title || 'not specified'}`,
+      `Fingerprint (SHA-256, of the transcript below): ${hash}`,
+      `Manifest generated: ${new Date().toISOString()}`,
+      '',
+      'FULL TRANSCRIPT',
+      '----------------',
+      transcriptEl.value.trim()
+    ].join('\n');
+  }
+
+  function renderCitation() {
+    const { tool } = getToolInfo();
+    const dateStr = dateEl.value ? dateEl.value : new Date().toISOString().slice(0,10);
+    const d = new Date(dateStr + 'T00:00:00');
+    const author = $('authorName').value.trim() || '[author name]';
+    const paper = $('title').value.trim() || '[paper title]';
+    const link = getPermLink();
+    const linkHtml = link ? link : pendingSpan();
+
+    const html = `${tool} (${fmtDate(d)}). ${author}. ${paper}. ${linkHtml}`;
+
+    $('citationText').innerHTML = html;
+    $('citeVerifiedTag').innerHTML = !link
+      ? ''
+      : demoActive
+        ? '<span class="demo-tag">Demo mode — simulated, not a real link</span>'
+        : '<span class="verified-tag">Linked to a permanent copy</span>';
+  }
+
+  $('authorName').addEventListener('input', renderCitation);
+  $('title').addEventListener('input', renderCitation);
+
+  $('permLink').addEventListener('input', () => { demoActive = false; renderCitation(); });
+  $('permLinkManual').addEventListener('input', () => { demoActive = false; renderCitation(); });
+
+  function getPermLink() {
+    if ($('autoStorage').style.display !== 'none') return $('permLink').value.trim();
+    return $('permLinkManual').value.trim();
+  }
+  $('edited').addEventListener('change', renderCitation);
+
+  $('generateBtn').addEventListener('click', async () => {
+    const errEl = $('generateError');
+    if (!transcriptEl.value.trim()) {
+      errEl.textContent = 'Paste or upload a conversation first.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const { tool, company } = getToolInfo();
+    const version = $('version').value.trim();
+    const dateStr = dateEl.value || new Date().toISOString().slice(0,10);
+    const title = $('title').value.trim();
+
+    const hashOfTranscript = await sha256Hex(transcriptEl.value.trim());
+    const manifest = buildManifest({ tool, company, version, dateStr, author: $('authorName').value.trim(), title, hash: hashOfTranscript });
+    currentManifest = manifest;
+    currentHash = await sha256Hex(manifest);
+
+    $('hashOut').textContent = currentHash;
+    $('output').classList.add('show');
+    demoActive = false;
+    renderCitation();
+    $('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const demoMode = $('demoMode').checked;
+
+    if (demoMode) {
+      $('autoStorage').style.display = 'block';
+      $('manualStorage').style.display = 'none';
+      $('autoStorageStatus').textContent = 'Simulating automatic storage… (demo mode — no real Worker is deployed)';
+      $('permLink').value = '';
+      renderCitation();
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      const fakeUrl = `https://raw.githubusercontent.com/your-username/citationai-transcripts/main/transcripts/demo-${Date.now()}-example.txt`;
+      $('permLink').value = fakeUrl;
+      demoActive = true;
+      $('autoStorageStatus').textContent = 'Simulated result — this is what automatic storage will look like once you deploy the Worker. This link is not real.';
+      renderCitation();
+    } else if (STORAGE_ENDPOINT) {
+      $('autoStorage').style.display = 'block';
+      $('manualStorage').style.display = 'none';
+      $('autoStorageStatus').textContent = 'Storing the transcript automatically…';
+      $('permLink').value = '';
+      renderCitation();
+      try {
+        const res = await fetch(STORAGE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: 'citationai-manifest.txt', content: manifest })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.url) throw new Error(data.error || 'Storage failed');
+        $('permLink').value = data.url;
+        $('autoStorageStatus').textContent = 'Stored automatically — permanent link below.';
+        renderCitation();
+      } catch (err) {
+        $('autoStorage').style.display = 'none';
+        $('manualStorage').style.display = 'block';
+        errEl.textContent = 'Automatic storage failed, so use the manual steps below instead.';
+        errEl.style.display = 'block';
+      }
+    } else {
+      $('autoStorage').style.display = 'none';
+      $('manualStorage').style.display = 'block';
+    }
+  });
+
+  $('copyHash').addEventListener('click', () => {
+    navigator.clipboard.writeText(currentHash).catch(() => {});
+  });
+
+  $('downloadManifest').addEventListener('click', () => {
+    const blob = new Blob([currentManifest], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'citationai-manifest.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  $('copyCitation').addEventListener('click', () => {
+    const text = $('citationText').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const msg = $('copiedMsg');
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 1500);
+    }).catch(() => {});
+  });
+})();
+</script>
+</body>
+</html>
