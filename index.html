@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CitationAI — cite your AI conversations</title>
+
+<!-- Social share preview (Facebook, Twitter/X, LinkedIn, Slack, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="CitationAI">
+<meta property="og:description" content="A free, open-source scholarly tool for creating citations for AI agents.">
+<meta property="og:image" content="https://gonsherdesign.github.io/citationai/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://gonsherdesign.github.io/citationai/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CitationAI">
+<meta name="twitter:description" content="A free, open-source scholarly tool for creating citations for AI agents.">
+<meta name="twitter:image" content="https://gonsherdesign.github.io/citationai/og-image.png">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    --bg: #000000;
+    --surface: #111111;
+    --surface-alt: #1A1A1A;
+    --ink: #FFFFFF;
+    --ink-soft: #CFCFCF;
+    --ink-faint: #8A8A8A;
+    --accent: #E1342A;
+    --accent-tint: #2A1512;
+    --border: #3A3A3A;
+    --focus: #E1342A;
+    --sans-header: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --sans-body: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+  }
+
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans-body);
+    line-height: 1.55;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+
+  header.masthead {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .masthead .mark {
+    font-family: var(--sans-header);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  .dek {
+    font-family: var(--sans-body);
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0.9rem 0 0;
+    max-width: none;
+  }
+
+  h2, h3 {
+    font-family: var(--sans-header);
+    font-weight: 700;
+  }
+
+  section.step {
+    margin-bottom: 2.5rem;
+  }
+
+  .step-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .step-num {
+    font-family: var(--sans-header);
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    min-width: 1.5rem;
+  }
+
+  .step-head h2 {
+    font-size: 1.2rem;
+    margin: 0;
+  }
+
+  .step-body {
+    padding-left: calc(1.5rem + 0.85rem);
+  }
+
+  .hint {
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+    margin: 0.4rem 0 0;
+  }
+
+  textarea, input[type="text"], input[type="date"], input[type="number"], select {
+    width: 100%;
+    font-family: var(--sans-body);
+    font-size: 0.98rem;
+    color: var(--ink);
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 0.7rem 0.8rem;
+  }
+
+  textarea:focus, input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+
+  .field { margin-bottom: 1rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-bottom: 0.35rem;
+  }
+  .field .inline-btn-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+  .field .inline-btn-row input { flex: 1 1 auto; }
+  .char-count {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    margin-top: 0.3rem;
+    text-align: left;
+  }
+
+  .checkfield {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+  .checkfield input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .checkfield label.fname {
+    width: 130px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .checkfield .fwrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .checkfield .inline-btn-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+  @media (max-width: 560px) {
+    .checkfield { flex-wrap: wrap; }
+    .checkfield label.fname { width: auto; }
+  }
+
+  .checkline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin-top: 1rem;
+  }
+  .checkline input { margin-top: 0.2rem; }
+
+  .radio-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .radio-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+  }
+  .radio-pill input { margin: 0; }
+  .radio-pill.checked {
+    border-color: var(--accent);
+    color: var(--ink);
+    background: var(--accent-tint);
+  }
+
+  .quick-launch {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.9rem 0;
+  }
+  .quick-launch a {
+    font-family: var(--sans-body);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 0.4rem 0.8rem;
+    text-decoration: none;
+  }
+  .quick-launch a:hover { border-color: var(--accent); color: var(--ink); }
+
+  button.primary {
+    font-family: var(--sans-header);
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: #000000;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 0;
+    padding: 0.8rem 1.4rem;
+    cursor: pointer;
+  }
+  button.primary:hover { opacity: 0.85; }
+
+  button.ghost {
+    font-family: var(--sans-body);
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+  }
+  button.ghost:hover { border-color: var(--ink-faint); color: var(--ink); }
+
+  #output { display: none; }
+  #output.show { display: block; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .panel h3 {
+    font-size: 1.05rem;
+    margin: 0 0 0.9rem;
+  }
+
+  .row-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .linkfield {
+    margin-top: 1.1rem;
+  }
+
+  .citation-label {
+    font-family: var(--sans-header);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 0.5rem;
+  }
+
+  .citation-out {
+    font-family: var(--sans-body);
+    font-size: 1rem;
+    line-height: 1.65;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 1.1rem 1.2rem;
+    text-indent: -1.5em;
+    margin-left: 1.5em;
+  }
+  .citation-out.inline {
+    text-indent: 0;
+    margin-left: 0;
+  }
+  .citation-out .pending {
+    color: var(--accent);
+    font-style: italic;
+    font-size: 0.92em;
+  }
+  .citation-block { margin-bottom: 1.4rem; }
+  .citation-block:last-child { margin-bottom: 0; }
+
+  .verified-tag {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--surface-alt);
+    border: 1px solid var(--accent);
+    padding: 0.2rem 0.55rem;
+    border-radius: 0;
+    margin-bottom: 0.7rem;
+  }
+
+  .about {
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+  .about p { margin: 0 0 1rem; }
+  .about ol { padding-left: 1.2rem; margin: 0 0 1rem; }
+  .about li { margin-bottom: 0.5rem; }
+  .about h3 { color: var(--ink); font-size: 1.15rem; margin-bottom: 0.9rem; }
+  .about h4 { font-family: var(--sans-header); color: var(--ink); font-size: 1rem; margin: 1.6rem 0 0.7rem; }
+  .about a { color: var(--accent); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  footer a { color: var(--ink-soft); }
+
+  .copied-msg {
+    font-size: 0.82rem;
+    color: var(--accent);
+    margin-left: 0.4rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="mark">CitationAI</div>
+    <p class="dek">CitationAI is a free, open-source scholarly tool for creating citations for AI agents. Share the conversation, either automatically by &ldquo;sharing&rdquo; or pasting the text in the appropriate field. Then select the citation style. CitationAI will prepare the appropriate reference and in-text citation with a link to the chain of thought that is cited as a reference.</p>
+  </header>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">1</span>
+      <h2>Share your agent citation</h2>
+    </div>
+    <div class="step-body">
+      <p class="hint" style="margin-bottom:0.7rem;">Most AI platforms let you generate a shareable link to a conversation — look for a Share button in ChatGPT, Claude, Gemini, or similar tools, and copy the link it gives you. Paste that link below and it becomes the permanent record your citation points to. If you'd rather link to a copy you've hosted yourself somewhere else, paste that link instead — either way, whatever you paste here is what readers will follow.</p>
+      <div class="quick-launch">
+        <a href="https://chatgpt.com" target="_blank" rel="noopener">Open ChatGPT ↗</a>
+        <a href="https://claude.ai" target="_blank" rel="noopener">Open Claude ↗</a>
+        <a href="https://gemini.google.com" target="_blank" rel="noopener">Open Gemini ↗</a>
+        <a href="https://grok.com" target="_blank" rel="noopener">Open Grok ↗</a>
+        <a href="https://copilot.microsoft.com" target="_blank" rel="noopener">Open Copilot ↗</a>
+      </div>
+      <div class="linkfield" style="margin-top:0;">
+        <label for="recordLink">Your link</label>
+        <input type="text" id="recordLink" placeholder="https://chatgpt.com/share/… or any URL">
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">2</span>
+      <h2>Choose your citation format</h2>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label for="citationStyle">Style</label>
+        <select id="citationStyle">
+          <option value="apa">APA</option>
+          <option value="mla">MLA</option>
+          <option value="chicago">Chicago</option>
+          <option value="harvard">Harvard</option>
+          <option value="vancouver">Vancouver</option>
+          <option value="ieee">IEEE</option>
+          <option value="none">No style</option>
+        </select>
+        <p class="hint" id="styleHint" style="margin-top:0.6rem;">These fields are used to build your APA citation.</p>
+      </div>
+
+      <h3 style="font-size:1rem; margin:1.6rem 0 1rem;">Enter citation information</h3>
+      <div id="customFieldsMenu">
+        <p class="hint" id="checkboxHint" style="margin-bottom:1rem; display:none;">Check a field to include it, and fill in its value.</p>
+
+        <div class="checkfield">
+          <input type="checkbox" id="incChatbot" checked class="inc-toggle">
+          <label class="fname" for="tool">Chatbot</label>
+          <div class="fwrap">
+            <select id="tool">
+              <option value="ChatGPT|OpenAI">ChatGPT</option>
+              <option value="Claude|Anthropic">Claude</option>
+              <option value="Gemini|Google">Gemini</option>
+              <option value="Grok|xAI">Grok</option>
+              <option value="Copilot|Microsoft">Copilot</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" id="otherToolField" style="display:none; margin-left:calc(130px + 0.7rem + 20px);">
+          <label for="otherTool">Tool and maker</label>
+          <input type="text" id="otherTool" placeholder="e.g. Perplexity, Perplexity AI">
+        </div>
+
+        <div class="checkfield">
+          <input type="checkbox" id="incDate" checked class="inc-toggle">
+          <label class="fname" for="convDate">Date</label>
+          <div class="fwrap">
+            <input type="date" id="convDate">
+          </div>
+        </div>
+
+        <div class="checkfield">
+          <input type="checkbox" id="incAuthor" checked class="inc-toggle">
+          <label class="fname" for="authorName">Author</label>
+          <div class="fwrap">
+            <input type="text" id="authorName" placeholder="e.g. Jane Smith">
+          </div>
+        </div>
+
+        <div class="checkfield">
+          <input type="checkbox" id="incName" checked class="inc-toggle">
+          <label class="fname" for="citationName">Citation name</label>
+          <div class="fwrap">
+            <input type="text" id="citationName" placeholder="e.g. Explaining tariff effects on prices">
+          </div>
+        </div>
+
+        <div class="field" id="accessedDateField" style="display:none;">
+          <label for="accessedDate">Accessed date</label>
+          <input type="date" id="accessedDate" style="max-width:220px;">
+        </div>
+
+        <div class="field" id="citationNumberField" style="display:none;">
+          <label for="citationNumber">Citation number</label>
+          <input type="number" id="citationNumber" min="1" value="1" style="max-width:120px;">
+          <p class="hint" id="citNumHint" style="margin-top:0.5rem;">Used in the in-text citation for every style.</p>
+        </div>
+
+        <div id="noStyleExtras" style="display:none;">
+          <div class="checkfield">
+            <input type="checkbox" id="incComments" class="inc-toggle">
+            <label class="fname" for="comments150">Comments</label>
+            <div class="fwrap">
+              <input type="text" id="comments150" maxlength="150" placeholder="A short note, up to 150 characters">
+              <span class="char-count" id="comments150Count">0 / 150</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="version">Model / version <span style="color:var(--ink-faint)">(optional)</span></label>
+            <input type="text" id="version" placeholder="e.g. GPT-4o, Claude Sonnet 4.5">
+          </div>
+
+          <label class="checkline" id="editedRow">
+            <input type="checkbox" id="edited">
+            <span>I edited or revised the AI's output before using it</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="step-body" style="padding-left:0; margin-bottom:2.5rem;">
+    <button class="primary" id="generateBtn">Build citation</button>
+    <p class="hint" id="generateError" style="display:none; color:var(--accent);"></p>
+  </div>
+
+  <div id="output">
+    <div class="panel">
+      <h3>Your citation</h3>
+      <div id="citeVerifiedTag"></div>
+
+      <div class="citation-block">
+        <p class="citation-label">Reference-list citation</p>
+        <div class="citation-out" id="citationText">—</div>
+        <div class="row-actions">
+          <button class="ghost" id="copyCitation">Copy citation</button>
+          <span class="copied-msg" id="copiedMsg" style="display:none;">Copied</span>
+        </div>
+      </div>
+
+      <div class="citation-block">
+        <p class="citation-label">In-text citation</p>
+        <div class="citation-out inline" id="inlineText">—</div>
+        <div class="row-actions">
+          <button class="ghost" id="copyInline">Copy in-text citation</button>
+          <span class="copied-msg" id="copiedMsgInline" style="display:none;">Copied</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="about">
+    <h3>About this project</h3>
+
+    <p>There are no universal mechanism in scholarly work for citing an AI agent in a way that preserves a full record of how it was produced. There are no established conventions, yet, for citations styles that fully preserves an AI agent's data, including identity, configuration, inputs, chain of thought, and other outputs. This is necessary in order to allow peer researchers the ability to reconstruct exactly how the reference was produced. At a moment when agents are increasingly contributing to published scholarly work, there is no established standard for citing that contribution. [Claude,1, 2026]</p>
+
+    <p>CitationAI is a beta prototype, designed to validate the concept and to serve as a vehicle for soliciting feedback about emerging best practices around agentic collaboration in scholarly work. More generally, CitationAI aspires to catalyze conversations about how academics should employ agents in their teaching and research.</p>
+
+    <p>Conventional citation styles — MLA, APA, Harvard, Chicago, IEEE — situate the reference within the text, allowing the reader to trace the idea back to its origin. AI conversations have no equivalent; no standard record, no durable link. Whether the output is code, natural language, or some other type of artifact, there should be an easy, user-friendly way to tag those contributions with a citation that references either agentic or human authorship.</p>
+
+    <p>This experimental pilot, built with Claude AI, and as design research project for the Creative Scholars Project, is meant to be a discursive artifact; a way to solicit feedback, and reflection, about how AI should be used in research and teaching. Some of the questions that guide this investigation:</p>
+    <ol>
+      <li>How might such an AI citation style be adopted by leading journals and conferences?</li>
+      <li>What records are helpful to retain? How can a system be designed that allows for easy, even automatic, referencing? What features should CitationAI have?</li>
+      <li>How can it be designed to be open and free to all users? There is an open question in this iteration of whether to host the data, or to provide an affordance that links to the chain in the chatbot that produced it — and there may be other, better options to consider.</li>
+      <li>Who owns the data — the user, or the AI company? Is it fair use? There are open questions about intellectual property, as well as other legal considerations.</li>
+      <li>What other considerations should we be considering in the development of future iterations of this project? How should we make use of agents in scholarly work, if at all?</li>
+    </ol>
+
+    <h4>References</h4>
+    <p>[1] Ian Gonsher (2026) &lsquo;citing an AI agent&rsquo;, Claude conversation, Anthropic. Available at: <a href="https://claude.ai/share/16e5394d-46c3-4168-8ffb-455e52708b45" target="_blank" rel="noopener">https://claude.ai/share/16e5394d-46c3-4168-8ffb-455e52708b45</a> (Accessed: 26 September 2026).</p>
+  </section>
+
+  <footer>
+    Nothing you enter here is sent anywhere. CitationAI is free and open source under the MIT license — read the code, self-host it, or send improvements on <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>.
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const toolSelect = $('tool');
+  const otherToolField = $('otherToolField');
+  const otherToolInput = $('otherTool');
+  const dateEl = $('convDate');
+  dateEl.value = new Date().toISOString().slice(0,10);
+  $('accessedDate').value = new Date().toISOString().slice(0,10);
+
+  toolSelect.addEventListener('change', () => {
+    otherToolField.style.display = toolSelect.value === 'other' ? 'block' : 'none';
+    renderCitation();
+  });
+
+  function getToolInfo() {
+    if (toolSelect.value === 'other') {
+      const raw = otherToolInput.value.trim();
+      const parts = raw.split(',');
+      return { tool: (parts[0] || 'the AI tool').trim(), company: (parts[1] || '').trim() || (parts[0]||'').trim() };
+    }
+    const [tool, company] = toolSelect.value.split('|');
+    return { tool, company };
+  }
+
+  function fmtDate(d) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+  function fmtDateMLA(d) {
+    const months = ['Jan.','Feb.','Mar.','Apr.','May','June','July','Aug.','Sept.','Oct.','Nov.','Dec.'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+  function fmtDateChicago(d) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+
+  function pendingSpan() {
+    return '<span class="pending">[record link pending — see step 1]</span>';
+  }
+
+  const STYLE_NAMES = { apa: 'APA', mla: 'MLA', chicago: 'Chicago', harvard: 'Harvard', vancouver: 'Vancouver', ieee: 'IEEE', none: 'No style' };
+
+  function updateStyleUI() {
+    const style = $('citationStyle').value;
+    const isNoStyle = style === 'none';
+    const showCitNum = style === 'vancouver' || style === 'ieee' || isNoStyle;
+    const showAccessed = style === 'harvard' || style === 'vancouver' || isNoStyle;
+
+    document.querySelectorAll('.inc-toggle').forEach(cb => {
+      cb.style.visibility = isNoStyle ? 'visible' : 'hidden';
+    });
+    $('checkboxHint').style.display = isNoStyle ? 'block' : 'none';
+    $('styleHint').style.display = isNoStyle ? 'none' : 'block';
+    $('styleHint').textContent = isNoStyle ? '' : `These fields are used to build your ${STYLE_NAMES[style]} citation.`;
+    $('noStyleExtras').style.display = isNoStyle ? 'block' : 'none';
+
+    $('citationNumberField').style.display = showCitNum ? 'block' : 'none';
+    $('citNumHint').textContent = (style === 'vancouver' || style === 'ieee')
+      ? 'Used for numbering in both the reference list and the in-text citation.'
+      : 'Used in the in-text citation.';
+
+    $('accessedDateField').style.display = showAccessed ? 'block' : 'none';
+
+    renderCitation();
+  }
+
+  $('accessedDate').addEventListener('input', renderCitation);
+
+  $('citationStyle').addEventListener('change', updateStyleUI);
+  ['incChatbot','incDate','incAuthor','incName'].forEach(id => {
+    $(id).addEventListener('change', renderCitation);
+  });
+
+  $('incComments').addEventListener('change', renderCitation);
+  $('comments150').addEventListener('input', () => {
+    $('comments150Count').textContent = `${$('comments150').value.length} / 150`;
+    renderCitation();
+  });
+  $('edited').addEventListener('change', renderCitation);
+
+  function renderCitation() {
+    const { tool, company } = getToolInfo();
+    const dateStr = dateEl.value ? dateEl.value : new Date().toISOString().slice(0,10);
+    const d = new Date(dateStr + 'T00:00:00');
+    const year = d.getFullYear();
+    const author = $('authorName').value.trim() || '[author name]';
+    const citationName = $('citationName').value.trim() || '[citation name]';
+    const citNum = $('citationNumber').value || '1';
+    const link = $('recordLink').value.trim();
+    const linkHtml = link ? link : pendingSpan();
+
+    const style = $('citationStyle').value;
+    let refHtml = '';
+
+    if (style !== 'none') {
+      const accessedStr = $('accessedDate').value || new Date().toISOString().slice(0,10);
+      const today = fmtDate(new Date(accessedStr + 'T00:00:00'));
+      if (style === 'apa') {
+        refHtml = `${author}. (${year}). ${citationName} [${tool} conversation]. ${linkHtml}`;
+      } else if (style === 'mla') {
+        refHtml = `${author}. &ldquo;${citationName}.&rdquo; ${tool} conversation, ${company}, ${fmtDateMLA(d)}, ${linkHtml}.`;
+      } else if (style === 'chicago') {
+        refHtml = `${author}. &ldquo;${citationName}.&rdquo; ${tool} conversation. ${company}, ${fmtDateChicago(d)}. ${linkHtml}.`;
+      } else if (style === 'harvard') {
+        refHtml = `${author} (${year}) &lsquo;${citationName}&rsquo;, ${tool} conversation, ${company}. Available at: ${linkHtml} (Accessed: ${today}).`;
+      } else if (style === 'vancouver') {
+        refHtml = `${citNum}. ${author}. ${citationName} [${tool} conversation, Internet]. ${company}; ${year} [cited ${today}]. Available from: ${linkHtml}`;
+      } else if (style === 'ieee') {
+        refHtml = `[${citNum}] ${author}, &ldquo;${citationName},&rdquo; ${tool} conversation, ${company}, ${year}. [Online]. Available: ${linkHtml}`;
+      }
+    } else {
+      const parts = [];
+      const dateChunk = $('incDate').checked ? `(${fmtDate(d)})` : '';
+      if ($('incChatbot').checked) {
+        parts.push(dateChunk ? `${tool} ${dateChunk}` : tool);
+      } else if (dateChunk) {
+        parts.push(dateChunk);
+      }
+      if ($('incAuthor').checked) parts.push(author);
+      if ($('incName').checked) parts.push(citationName);
+      parts.push(linkHtml);
+      refHtml = parts.filter(Boolean).join('. ') + '.';
+
+      if ($('incComments').checked) {
+        const comment = $('comments150').value.trim();
+        if (comment) refHtml += ` Comment: ${comment}.`;
+      }
+      if ($('edited').checked) refHtml += ' (Edited by author before use.)';
+    }
+
+    const inlineHtml = `[${tool}, ${citNum}, ${year}]`;
+
+    $('citationText').innerHTML = refHtml;
+    $('inlineText').innerHTML = inlineHtml;
+    $('citeVerifiedTag').innerHTML = link
+      ? '<span class="verified-tag">Linked record</span>'
+      : '';
+  }
+
+  $('authorName').addEventListener('input', renderCitation);
+  $('citationName').addEventListener('input', renderCitation);
+  $('citationNumber').addEventListener('input', renderCitation);
+  $('convDate').addEventListener('input', renderCitation);
+  $('version').addEventListener('input', renderCitation);
+  otherToolInput.addEventListener('input', renderCitation);
+  $('recordLink').addEventListener('input', renderCitation);
+
+  $('generateBtn').addEventListener('click', () => {
+    $('output').classList.add('show');
+    renderCitation();
+    $('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  function wireCopy(btnId, sourceId, msgId) {
+    $(btnId).addEventListener('click', () => {
+      const text = $(sourceId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const msg = $(msgId);
+        msg.style.display = 'inline';
+        setTimeout(() => { msg.style.display = 'none'; }, 1500);
+      }).catch(() => {});
+    });
+  }
+  wireCopy('copyCitation', 'citationText', 'copiedMsg');
+  wireCopy('copyInline', 'inlineText', 'copiedMsgInline');
+
+  updateStyleUI();
+})();
+</script>
+</body>
+</html>
